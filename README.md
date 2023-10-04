@@ -1,5 +1,7 @@
 # Mean Viz
 
+This is a simple tool to see what your prefetcher is doing, I made it last night and will probably be live only for a few hours before the deadline; maybe it will be useful for some other batch of students :|
+
 ## Integration with champsim
 
 1. Add meamviz.h to inc directory.
