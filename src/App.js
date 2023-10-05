@@ -16,25 +16,6 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { JsonView, allExpanded, darkStyles, defaultStyles } from 'react-json-view-lite';
 import 'react-json-view-lite/dist/index.css';
 
-// const marks = [
-//   {
-//     value: 0,
-//     label: '0°C',
-//   },
-//   {
-//     value: 20,
-//     label: '20°C',
-//   },
-//   {
-//     value: 37,
-//     label: '37°C',
-//   },
-//   {
-//     value: 100,
-//     label: '100°C',
-//   },
-// ];
-
 function arrayMin(arr) {
   var len = arr.length, min = Infinity;
   while (len--) {
@@ -79,14 +60,24 @@ const Item = styled(Paper)(({ theme }) => ({
 function App() {
 
   const [mainData, setMainData] = useState([]);
-  const [clockCycle, setClockCycle] = useState(0);
+  const [eventID, setEventID] = useState(0);
   const [sliderLimits, setSliderLimits] = useState([0,0]);
-  const [classLimit, setClassLimit] = useState(150);
+  const [addressesPerRow, setAddressesPerRow] = useState(150);
 
-  const [canvasData, setCanvasData] = useState([1000,800]);
+  const [canvasData, setCanvasData] = useState([1090,800]);
   const [loading, setLoading] = useState(false);
 
-  const [eventData, setEventData] = useState(undefined);
+  const [eventData, setEventData] = useState(
+    {
+      EVENT_NAME: "NIL",
+      ADDR: 0,
+      IP: 0,
+      TYPE: "NIL",
+      CACHE_HIT: "NIL",
+      CACHE_NAME: "NIL",
+      CYCLE: 0,
+    }
+  );
 
   const [ASMR, setASMR] = useState(false);
   const [ASMRTimer, setASMRTimer] = useState(0);
@@ -94,32 +85,38 @@ function App() {
 
   useEffect(() => {
     handlePlot()
-  }, [clockCycle, classLimit])
+  }, [eventID, addressesPerRow, mainData])
 
   const handlePlot = () => {
     if (!mainData.ADDR) return;
-    let c = document.getElementById("myCanvas");
-    let ctx = c.getContext("2d");
-    ctx.fillStyle = "#f0f0f0";
-    ctx.fillRect(0, 0, canvasData[0], canvasData[1]);
+      let c = document.getElementById("myCanvas");
+      let ctx = c.getContext("2d");
+      ctx.fillStyle = "#f0f0f0";
+      ctx.fillRect(0, 0, canvasData[0], canvasData[1]);
 
-    let eventNameSubset = mainData["EVENT_NAME"].filter( (a ,index) => mainData["CYCLE"][index] <= clockCycle )
-    let cacheHitSubset = mainData["CACHE_HIT"].filter( (a ,index) => mainData["CYCLE"][index] <= clockCycle )
-    let addrSubset = mainData["ADDR"].filter( (a ,index) => mainData["CYCLE"][index] <= clockCycle )
+    let eventNameSubset = mainData["EVENT_NAME"].filter( (a ,index) => index <= eventID )
+    let cacheHitSubset = mainData["CACHE_HIT"].filter( (a ,index) => index <= eventID )
+    let addrSubset = mainData["ADDR"].filter( (a ,index) => index <= eventID )
+    
     let addrClasses = {}
 
+
+
     setEventData({
-      idx: eventNameSubset.length - 1,
-      eventName: eventNameSubset[eventNameSubset.length - 1],
-      cacheHit: cacheHitSubset[cacheHitSubset.length - 1],
-      address: addrSubset[addrSubset.length - 1],
+      EVENT_NAME: mainData["EVENT_NAME"][eventID],
+      ADDR: mainData["ADDR"][eventID],
+      IP: mainData["IP"][eventID],
+      TYPE: mainData["TYPE"][eventID],
+      CACHE_HIT: mainData["CACHE_HIT"][eventID] === "0" ? "MISS" : "HIT",
+      CACHE_NAME: mainData["CACHE_NAME"][eventID],
+      CYCLE: mainData["CYCLE"][eventID],
     })
 
     let reverseMap = {}
 
     addrSubset.forEach((element, idx) => {
       reverseMap[element] = idx
-      let classs = Math.floor(element/classLimit)
+      let classs = Math.floor(element/addressesPerRow)
       if (classs in addrClasses) {
         addrClasses[classs] = [...addrClasses[classs], element]
       } else {
@@ -128,19 +125,21 @@ function App() {
     });
 
 
-    let widthIncrement = canvasData[0] / classLimit
+    let widthIncrement = (canvasData[0] - 90) / addressesPerRow
     let heightIncrement = canvasData[1] / Object.keys(addrClasses).length
     
     let row = 0
+    
     for (const key in addrClasses) {
       if (addrClasses.hasOwnProperty(key)) {
         let coll = 0
-        for (let plotCol = 0; plotCol < classLimit; plotCol++) {
-          let addrKey = plotCol + (parseInt(key) * classLimit);
+        for (let plotCol = 0; plotCol < addressesPerRow; plotCol++) {
+          let addrKey = plotCol + (parseInt(key) * addressesPerRow);
           if (addrKey in reverseMap) {
             ctx.fillStyle = "#08D9D6";
             ctx.fillRect(coll, row, widthIncrement * 0.9, heightIncrement * 0.9);
             let realIdx = reverseMap[addrKey]
+            
             if (eventNameSubset[realIdx] === "CACHE_OPERATE") {
               if (cacheHitSubset[realIdx] === "1") {
                 ctx.fillStyle = "#91C788";
@@ -149,6 +148,21 @@ function App() {
                 ctx.fillStyle = "#C63D2F";
                 ctx.fillRect(coll, row, widthIncrement * 0.9, heightIncrement * 0.9);
               }
+              // ctx.fillStyle = "#08D9D6";
+              // ctx.fillRect(coll + (widthIncrement * 0.25), row + (heightIncrement * 0.025), widthIncrement * 0.5, heightIncrement * 0.85);
+            }
+            if (realIdx == eventID) {
+              ctx.beginPath();
+              ctx.fillStyle = "black";
+              ctx.arc(coll + ((widthIncrement * 0.9) / 2), row + ((heightIncrement * 0.9) / 2), 7, 0, 2 * Math.PI);
+              ctx.fill(); 
+              ctx.beginPath();
+              ctx.fillStyle = "yellow";
+              ctx.arc(coll + ((widthIncrement * 0.9) / 2), row + ((heightIncrement * 0.9) / 2), 5, 0, 2 * Math.PI);
+              ctx.fill(); 
+              ctx.fillStyle = "black";
+              ctx.font = "18px mono";
+              ctx.fillText(addrKey, coll + ((widthIncrement * 0.9) / 2), row + ((heightIncrement * 0.9) / 2) + 15); 
             }
           }
 
@@ -179,11 +193,22 @@ function App() {
             finalData[_data[0][i].trim()] = [...finalData[_data[0][i].trim()], (_data[0][i].trim() == "ADDR" || _data[0][i].trim() == "CYCLE") ? parseInt(currLine[i]) : currLine[i]];
           }
         }
-        let minCycle = arrayMin(finalData["CYCLE"])
-        let maxCycle = arrayMax(finalData["CYCLE"])
-        setSliderLimits([minCycle, maxCycle])
-        setClockCycle(minCycle)
+        setSliderLimits([0, finalData["CYCLE"].length - 2])
+        setEventID(0)
         setMainData(finalData)
+        setEventData({
+          EVENT_NAME: finalData["EVENT_NAME"][eventID],
+          ADDR: finalData["ADDR"][eventID],
+          IP: finalData["IP"][eventID],
+          TYPE: finalData["TYPE"][eventID],
+          CACHE_HIT: finalData["CACHE_HIT"][eventID] === "0" ? "MISS" : "HIT",
+          CACHE_NAME: finalData["CACHE_NAME"][eventID],
+          CYCLE: finalData["CYCLE"][eventID],
+        })
+        handlePlot()
+        
+
+        console.log(finalData)
       } catch (error) {
         console.error(error);
       }
@@ -198,14 +223,16 @@ function App() {
       clearInterval(ASMRTimer)
     } else {
       setASMR(true)
-      let counter = eventData.idx
+      let counter = eventID
+      let max = mainData["CYCLE"].length - 1
 
       
       let interval = setInterval(() => {
-        if (counter < mainData["CYCLE"].length) {
-          setClockCycle(mainData["CYCLE"][counter])
+        console.log("ASMR", counter)
+        if (counter != max) {
+          setEventID(counter)
+          counter++
         }
-        counter++
       }, timePerEvent <= 0 ? 80 : timePerEvent )
       setASMRTimer(interval)
     }
@@ -240,19 +267,19 @@ function App() {
 
               <div>
                 <Typography variant='subtitle1' gutterBottom>
-                  Cache Lines per row (<b>{classLimit}</b>)
+                  Cache Lines per row (<b>{addressesPerRow}</b>)
                 </Typography>
                 <Slider
                   type="range"
                   min={100}
                   max={2000}
-                  onChange={(e) => setClassLimit(e.target.value)}
-                  value={classLimit}
+                  onChange={(e) => setAddressesPerRow(e.target.value)}
+                  value={addressesPerRow}
                 />
               </div>
               <div>
                 <Typography variant='body2' gutterBottom align='left'>
-                  Each row shows <b>{classLimit}</b> consecutive cache lines.
+                  Each row shows <b>{addressesPerRow}</b> consecutive cache lines.
                   <br/>
                   If a memory region contains no accesses, its not shown! (this was more complicated to implement that it might sound).
                   Sadly for a given trace finding the optimal division factor is probably np-complete (or I am too sleepy). 
@@ -262,14 +289,15 @@ function App() {
 
               <div>
                 <Typography variant='subtitle1' gutterBottom>
-                  Clock Cycle: {clockCycle}
+                  Event Id: {eventID}, Clock Cycle: {eventData.CYCLE}
                 </Typography>
                 <Slider
+                  disabled={ASMR}
                   type="range"
                   min={sliderLimits[0]}
                   max={sliderLimits[1]}
-                  onChange={(e) => setClockCycle(e.target.value)}
-                  value={clockCycle}
+                  onChange={(e) => setEventID(e.target.value)}
+                  value={eventID}
                 />
               </div>
 
