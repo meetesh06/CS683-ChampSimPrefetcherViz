@@ -1,11 +1,9 @@
-import logo from './logo.svg';
 import './App.css';
 import { useEffect, useState } from 'react';
 import { styled } from '@mui/material/styles';
-import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
-import { AppBar, Container, Divider, TextField, Toolbar, Typography } from '@mui/material';
+import { AppBar, Divider, IconButton, TextField, Toolbar, Tooltip, Typography } from '@mui/material';
 
 import LinearProgress from '@mui/material/LinearProgress';
 import Slider from '@mui/material/Slider';
@@ -16,25 +14,16 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { JsonView, allExpanded, darkStyles, defaultStyles } from 'react-json-view-lite';
 import 'react-json-view-lite/dist/index.css';
 
-function arrayMin(arr) {
-  var len = arr.length, min = Infinity;
-  while (len--) {
-    if (arr[len] < min) {
-      min = arr[len];
-    }
-  }
-  return min;
-};
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
 
-function arrayMax(arr) {
-  var len = arr.length, max = -Infinity;
-  while (len--) {
-    if (arr[len] > max) {
-      max = arr[len];
-    }
-  }
-  return max;
-};
+const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+  },
+});
+
+
 
 
 const VisuallyHiddenInput = styled('input')({
@@ -91,7 +80,7 @@ function App() {
     if (!mainData.ADDR) return;
       let c = document.getElementById("myCanvas");
       let ctx = c.getContext("2d");
-      ctx.fillStyle = "#f0f0f0";
+      ctx.fillStyle = "#fafafa";
       ctx.fillRect(0, 0, canvasData[0], canvasData[1]);
 
     let eventNameSubset = mainData["EVENT_NAME"].filter( (a ,index) => index <= eventID )
@@ -129,6 +118,8 @@ function App() {
     let heightIncrement = canvasData[1] / Object.keys(addrClasses).length
     
     let row = 0
+
+    let currHighlight = []
     
     for (const key in addrClasses) {
       if (addrClasses.hasOwnProperty(key)) {
@@ -148,22 +139,12 @@ function App() {
                 ctx.fillStyle = "#C63D2F";
                 ctx.fillRect(coll, row, widthIncrement * 0.9, heightIncrement * 0.9);
               }
-              // ctx.fillStyle = "#08D9D6";
-              // ctx.fillRect(coll + (widthIncrement * 0.25), row + (heightIncrement * 0.025), widthIncrement * 0.5, heightIncrement * 0.85);
             }
+
             if (realIdx == eventID) {
-              ctx.beginPath();
-              ctx.fillStyle = "black";
-              ctx.arc(coll + ((widthIncrement * 0.9) / 2), row + ((heightIncrement * 0.9) / 2), 7, 0, 2 * Math.PI);
-              ctx.fill(); 
-              ctx.beginPath();
-              ctx.fillStyle = "yellow";
-              ctx.arc(coll + ((widthIncrement * 0.9) / 2), row + ((heightIncrement * 0.9) / 2), 5, 0, 2 * Math.PI);
-              ctx.fill(); 
-              ctx.fillStyle = "black";
-              ctx.font = "18px mono";
-              ctx.fillText(addrKey, coll + ((widthIncrement * 0.9) / 2), row + ((heightIncrement * 0.9) / 2) + 15); 
+              currHighlight = [coll + ((widthIncrement * 0.9) / 2), row + ((heightIncrement * 0.9) / 2), addrKey]
             }
+            
           }
 
           coll += widthIncrement
@@ -171,6 +152,20 @@ function App() {
       }
       row += heightIncrement
     }
+
+    ctx.beginPath();
+    ctx.fillStyle = "black";
+    ctx.arc(currHighlight[0], currHighlight[1], 5, 0, 2 * Math.PI);
+    ctx.fill(); 
+    ctx.beginPath();
+    ctx.fillStyle = "white";
+    ctx.arc(currHighlight[0], currHighlight[1], 3, 0, 2 * Math.PI);
+    ctx.fill(); 
+    ctx.fillStyle = "black";
+    ctx.font = "18px mono";
+    ctx.fillText(currHighlight[2], currHighlight[0] + 8, currHighlight[1]); 
+
+
   }
 
   const handleFileChange = async (e) => {
@@ -238,115 +233,104 @@ function App() {
     }
   }
   return (
-    <div className="App">
-      <AppBar position="static">
+    <ThemeProvider theme={darkTheme}>
+      <CssBaseline />
+      {/* <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             CS683 '23 - Meam viz
           </Typography>
         </Toolbar>
-      </AppBar>
-      <div style={{ padding: 10 }}>
+      </AppBar> */}
+      <div style={{ padding: 20 }}>
         <Grid container spacing={2}>
-          <Grid item xs={4}>
-            <Item style={{ padding: 10 }}>
-              {
-                !mainData.ADDR &&
-                <div>
-                  <Typography variant='h6'>
-                    Upload Trace
-                  </Typography>
-                  <Button component="label" variant="outlined" startIcon={<CloudUploadIcon />}>
-                    Upload trace
-                    <VisuallyHiddenInput type="file" accept=".csv" onChange={handleFileChange} />
-                  </Button>
-                  <Divider style={{ marginTop: 15, marginBottom: 15 }} />
-                </div>
-              }
-
-
-              <div>
-                <Typography variant='subtitle1' gutterBottom>
-                  Cache Lines per row (<b>{addressesPerRow}</b>)
-                </Typography>
+          <Grid item xs={3}>
+            <Item style={{ marginBottom: 10, padding: 10 }}>
+              <Typography variant='body2'>
+                The definitive - <i> My prefetcher is doing what I think its doing proof ;)</i>
+              </Typography>
+            </Item>
+            <Item style={{ marginBottom: 10, padding: 10 }}>
+              <div style={{ paddingLeft: 20,  paddingRight: 20 }}>
+                <code>
+                  Cache lines per row: <br/> <b>{addressesPerRow}</b>
+                </code>
                 <Slider
+                  disabled={!mainData.ADDR}
+                  step={50}
+                  color="secondary"
                   type="range"
+                  size="small"
                   min={100}
                   max={2000}
                   onChange={(e) => setAddressesPerRow(e.target.value)}
                   value={addressesPerRow}
                 />
               </div>
-              <div>
-                <Typography variant='body2' gutterBottom align='left'>
-                  Each row shows <b>{addressesPerRow}</b> consecutive cache lines.
-                  <br/>
-                  If a memory region contains no accesses, its not shown! (this was more complicated to implement that it might sound).
-                  Sadly for a given trace finding the optimal division factor is probably np-complete (or I am too sleepy). 
-                  <br/>
-                </Typography>
-              </div>
 
-              <div>
-                <Typography variant='subtitle1' gutterBottom>
-                  Event Id: {eventID}, Clock Cycle: {eventData.CYCLE}
-                </Typography>
+              <div style={{ paddingLeft: 20,  paddingRight: 20 }}>
+                <code>
+                  Event Id: <b>{eventID}</b> <br/> Clock Cycle: <b>{eventData.CYCLE}</b> 
+                </code>
                 <Slider
-                  disabled={ASMR}
+                  color="secondary"
+                  disabled={!mainData.ADDR || ASMR}
                   type="range"
                   min={sliderLimits[0]}
                   max={sliderLimits[1]}
+                  size="small"
                   onChange={(e) => setEventID(e.target.value)}
                   value={eventID}
                 />
               </div>
 
-              <Divider style={{ marginTop: 15, marginBottom: 15 }} />
+            </Item>
 
-              <TextField variant="filled" label="Time(ms)/Event" value={timePerEvent} onChange={(e) => setTimePerEvent(e.target.value)} />
-              <Divider style={{ marginTop: 15, marginBottom: 15 }} />
+            
 
-              <Button onClick={handleASMR} >
-                {!ASMR && "Start ASMR"}
-                {ASMR && "Stop ASMR"}
-              </Button>
-
-              <div>
-                <Typography variant='body2' gutterBottom>
-                  ASMR is to let your prefetcher show off in style ;). The colors that it makes are strangely kind of relaxing :)
-                  <br/>
-                </Typography>
+            <Item style={{ marginBottom: 10, padding: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <TextField disabled={!mainData.ADDR} size="small" variant="outlined" label="Time(ms)/Event" value={timePerEvent} onChange={(e) => setTimePerEvent(e.target.value)} />
+                <Button size="small" disabled={!mainData.ADDR} onClick={handleASMR} >
+                  {!ASMR && "Start ASMR"}
+                  {ASMR && "Stop ASMR"}
+                </Button>
               </div>
 
+            </Item>
 
-              <Divider style={{ marginTop: 15, marginBottom: 15 }} />
-
-
-              {mainData.ADDR && 
-                <div style={{ textAlign: 'left' }}>
-                  <JsonView data={eventData} shouldExpandNode={allExpanded} style={defaultStyles} />
+            <Item style={{ marginBottom: 10, padding: 10 }}>
+              {
+                <div>
+                  <Button component="label" color={ mainData.ADDR ? 'secondary' : 'primary' } variant="outlined" startIcon={<CloudUploadIcon />}>
+                    {
+                      mainData.ADDR && "Upload Another"
+                    }
+                    {
+                      !mainData.ADDR && "Upload Trace"
+                    }
+                    <VisuallyHiddenInput type="file" accept=".csv" onChange={handleFileChange} />
+                  </Button>
                   <Divider style={{ marginTop: 15, marginBottom: 15 }} />
                 </div>
               }
-
-              <Typography variant='body2'>
-                The definitive - <i>My prefetcher is doing what I think its doing proof ;)</i>
-              </Typography>
+              {
+                mainData.ADDR && 
+                <div style={{ textAlign: 'left' }}>
+                  <JsonView data={eventData} shouldExpandNode={allExpanded} style={darkStyles} />
+                </div>
+              }
             </Item>
           </Grid>
-          <Grid item xs={8}>
-            <Item style={{ padding: 10 }}>
-                <canvas id="myCanvas" width={canvasData[0]} height={canvasData[1]}></canvas>
-                {loading && <LinearProgress />}
-                <i>_mee_</i>
+          <Grid item xs={9}>
+            <Item style={{ padding: 10, display: 'flex', justifyContent: 'center' }}>
+              <canvas id="myCanvas" style={{ borderRadius: 10, opacity: 0.95}} width={canvasData[0]} height={canvasData[1]}></canvas>
+              {loading && <LinearProgress />}
             </Item>
           </Grid>
         </Grid>
       </div>
-
-      
-      
-    </div>
+    </ThemeProvider>
   );
 }
 
