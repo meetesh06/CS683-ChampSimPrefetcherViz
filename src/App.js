@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { styled } from '@mui/material/styles';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
-import { AppBar, Divider, IconButton, TextField, Toolbar, Tooltip, Typography } from '@mui/material';
+import { AppBar, Divider, IconButton, Link, TextField, Toolbar, Tooltip, Typography } from '@mui/material';
 
 import LinearProgress from '@mui/material/LinearProgress';
 import Slider from '@mui/material/Slider';
@@ -314,6 +314,9 @@ function App() {
                   <Divider style={{ marginTop: 15, marginBottom: 15 }} />
                 </div>
               }
+              <Link href="https://github.com/meetesh06/CS683-ChampSimPrefetcherViz/tree/main/examples">
+                Example traces
+              </Link>
               {
                 mainData.ADDR && 
                 <div style={{ textAlign: 'left' }}>
