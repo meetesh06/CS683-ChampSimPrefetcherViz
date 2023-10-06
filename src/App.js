@@ -317,6 +317,12 @@ function App() {
               <Link href="https://github.com/meetesh06/CS683-ChampSimPrefetcherViz/tree/main/examples">
                 Example traces
               </Link>
+
+              <Link href="https://github.com/meetesh06/CS683-ChampSimPrefetcherViz">
+                Generate trace
+              </Link>
+
+              
               {
                 mainData.ADDR && 
                 <div style={{ textAlign: 'left' }}>
