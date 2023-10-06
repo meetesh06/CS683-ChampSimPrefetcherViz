@@ -314,15 +314,20 @@ function App() {
                   <Divider style={{ marginTop: 15, marginBottom: 15 }} />
                 </div>
               }
-              <Link href="https://github.com/meetesh06/CS683-ChampSimPrefetcherViz/tree/main/examples">
-                Example traces
-              </Link>
 
-              <Link href="https://github.com/meetesh06/CS683-ChampSimPrefetcherViz">
-                Generate trace
-              </Link>
+              {
+                !mainData.ADDR &&
+                <div>
+                <Link href="https://github.com/meetesh06/CS683-ChampSimPrefetcherViz/tree/main/examples">
+                  Example traces
+                </Link>
+                <br/>
 
-              
+                <Link href="https://github.com/meetesh06/CS683-ChampSimPrefetcherViz">
+                  Generate trace
+                </Link>
+                </div> 
+              }
               {
                 mainData.ADDR && 
                 <div style={{ textAlign: 'left' }}>
