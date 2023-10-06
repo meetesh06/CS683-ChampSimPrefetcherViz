@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/CS683-ChampSimPrefetcherViz/static/css/main.205a4744.css",
-    "main.js": "/CS683-ChampSimPrefetcherViz/static/js/main.3f15fb67.js",
+    "main.js": "/CS683-ChampSimPrefetcherViz/static/js/main.146e7654.js",
     "static/js/787.fb6cc23d.chunk.js": "/CS683-ChampSimPrefetcherViz/static/js/787.fb6cc23d.chunk.js",
     "index.html": "/CS683-ChampSimPrefetcherViz/index.html",
     "main.205a4744.css.map": "/CS683-ChampSimPrefetcherViz/static/css/main.205a4744.css.map",
-    "main.3f15fb67.js.map": "/CS683-ChampSimPrefetcherViz/static/js/main.3f15fb67.js.map",
+    "main.146e7654.js.map": "/CS683-ChampSimPrefetcherViz/static/js/main.146e7654.js.map",
     "787.fb6cc23d.chunk.js.map": "/CS683-ChampSimPrefetcherViz/static/js/787.fb6cc23d.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.205a4744.css",
-    "static/js/main.3f15fb67.js"
+    "static/js/main.146e7654.js"
   ]
 }
